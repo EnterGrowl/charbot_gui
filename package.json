@@ -1,14 +1,14 @@
 {
-   "name": "ChatApplication",
+   "name": "CharShiftChatBotGUI",
    "version": "1.0.0",
-   "description": "",
+   "description": "CharShift ChatBot GUI",
    "main": "app.js",
    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1",
+      "test": "echo \"Error: no test specified\" && exit 0",
       "start": "node app.js"
    },
    "keywords": [],
-   "author": "Mehedi Islam Ripon",
+   "author": "Reza Fatahi",
    "license": "ISC",
    "dependencies": {
       "axios": "^1.4.0",
