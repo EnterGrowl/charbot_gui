@@ -1,14 +1,22 @@
 // dependencies
 const express = require('express');
 const axios = require('axios');
-const http = require('http');
 const socketIo = require('socket.io');
+const moment = require('moment-timezone');
 const path = require('path');
-const formatMessage = require('./utils/messages');
-
+const http = require('http');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+
+function formatMessage(username, text) {
+   return {
+      username,
+      text,
+      // time: moment().format('h:mm a'),
+      time: moment().format('h:mm a'),
+   };
+}
 
 // set static file
 app.use(express.static(path.join(__dirname, 'public')));
@@ -53,7 +61,7 @@ io.on('connection', (socket) => {
    });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 13447;
 server.listen(PORT, () => {
    console.log(`🎯 Server is running on PORT: ${PORT}`);
 });
