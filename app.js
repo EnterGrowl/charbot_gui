@@ -1,15 +1,10 @@
 // dependencies
 const express = require('express');
+const axios = require('axios');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const formatMessage = require('./utils/messages');
-const {
-   userJoin,
-   getCurrentUser,
-   userLeave,
-   getRoomUsers,
-} = require('./utils/users');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,56 +13,43 @@ const io = socketIo(server);
 // set static file
 app.use(express.static(path.join(__dirname, 'public')));
 
-const botName = 'XeroxChat Bot';
+const botName = 'CharBot';
 
 // run when client connects
 io.on('connection', (socket) => {
-   socket.on('joinRoom', ({ username, room }) => {
-      const user = userJoin(socket.id, username, room);
 
-      socket.join(user.room);
+   socket.emit('message', formatMessage(botName, 'Welcome to CharShift API\'s user-interactive interface!'));
 
-      // welcome current user
-      socket.emit('message', formatMessage(botName, 'Welcome to XeroxChat!'));
-
-      // broadcast when a user connects
-      socket.broadcast
-         .to(user.room)
-         .emit(
-            'message',
-            formatMessage(botName, `${user.username} has joined the chat!`)
-         );
-
-      // send users and room info
-      io.to(user.room).emit('roomUsers', {
-         room: user.room,
-         users: getRoomUsers(user.room),
-      });
+   socket.on('joinRoom', (room) => {
+       socket.join(room);       
    });
 
-   // listen for chatMessage
-   socket.on('chatMessage', (msg) => {
-      const user = getCurrentUser(socket.id);
+   // Listen for chatMessage
+   socket.on('chatMessage', async (data) => {
+     const { msg, apiUrl, authKey } = data;
+     const room = authKey.slice(-4);
+     // Send user's message to chat
+     io.to(room).emit('message', formatMessage('User', msg));
 
-      io.to(user.room).emit('message', formatMessage(user.username, msg));
-   });
+     // Call API and stream response back to the client
+     const response = await axios({
+       method: 'post',
+       url: apiUrl,
+       data: {
+         auth: authKey,
+         query: msg
+       },
+       responseType: 'stream'
+     });
 
-   // runs when clients disconnects
-   socket.on('disconnect', () => {
-      const user = userLeave(socket.id);
+     response.data.on('data', (chunk) => {
+       const cleaned_data = chunk.toString('utf-8').replace("data: ", "").replace("\r\n", "");
+       io.to(room).emit('message', formatMessage(botName, cleaned_data));
+     });
 
-      if (user) {
-         io.to(user.room).emit(
-            'message',
-            formatMessage(botName, `${user.username} has left the chat!`)
-         );
-
-         // send users and room info
-         io.to(user.room).emit('roomUsers', {
-            room: user.room,
-            users: getRoomUsers(user.room),
-         });
-      }
+     response.data.on('end', () => {
+       // Optional: Emit a message to indicate the end of the response, or handle any post-response actions
+     });
    });
 });
 

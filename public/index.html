@@ -16,45 +16,55 @@
          crossorigin="anonymous"
       />
       <link rel="stylesheet" href="css/style.css" />
-      <title>Chat Application by Mehedi</title>
+      <title>CharShift ChatBot</title>
    </head>
    <body>
       <div class="join-container">
          <header class="join-header">
             <h1 style="color: #f5f6f7">
-               <i class="fas fa-comment-dots"></i> XeroxChat
+               <i class="fas fa-comment-dots"></i> CharShift ChatBot
             </h1>
          </header>
          <main class="join-main">
-            <form action="chat.html">
-               <div class="form-control">
-                  <label style="color: #f5f6f7" for="username">Username</label>
-                  <input
-                     type="text"
-                     name="username"
-                     id="username"
-                     placeholder="Enter username..."
-                     required
-                  />
-               </div>
-               <div class="form-control">
-                  <label style="color: #f5f6f7" for="room">Select Room</label>
-                  <select name="room" id="room">
-                     <option value="Room-1">Room-1</option>
-                     <option value="Room-2">Room-2</option>
-                     <option value="Room-3">Room-3</option>
-                     <option value="Room-4">Room-4</option>
-                     <option value="Room-5">Room-5</option>
-                  </select>
-               </div>
-               <button type="submit" class="btn">Join Chat</button>
-            </form>
-         </main>
-         <footer style="margin-top: 25px">
-            <div style="text-align: center" class="credit">
-               &copy; Mehedi Islam Ripon
+            <div class="form-control">
+               <label style="color: #f5f6f7" for="url">CharShift API URL</label>
+               <input
+                  type="text"
+                  name="url"
+                  id="url"
+                  placeholder="Enter URL"
+                  required
+               />
             </div>
-         </footer>
+            <div class="form-control">
+               <label style="color: #f5f6f7" for="key">Authentication Key</label>
+               <input
+                  type="text"
+                  name="key"
+                  id="key"
+                  placeholder="Enter Key"
+                  required
+               />
+            </div>
+            <button id="start_chat" type="submit" class="btn">Join Chat</button>
+         </main>
       </div>
    </body>
+   <script type="text/javascript">
+      document.getElementById('start_chat').addEventListener('click', function(event) {
+         event.preventDefault();  // Prevent the default form submission
+
+         const url = document.getElementById('url').value;
+         const key = document.getElementById('key').value;
+
+         if (url.indexOf('https://') === -1) return alert('Invalid URL!')
+         if (key.indexOf('-') === -1) return alert('Invalid Key!')
+
+         localStorage.setItem('apiUrl', url);
+         localStorage.setItem('authKey', key);
+
+         window.location.href = 'chat.html';
+      });
+
+   </script>
 </html>

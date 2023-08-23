@@ -11,6 +11,7 @@
    "author": "Mehedi Islam Ripon",
    "license": "ISC",
    "dependencies": {
+      "axios": "^1.4.0",
       "express": "^4.17.1",
       "moment-timezone": "^0.5.33",
       "socket.io": "^4.1.1"
