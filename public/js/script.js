@@ -44,17 +44,26 @@ function outputMessage(username, messageText) {
     
     // Check if the message contains the '\r\n' sequence, indicating it's from the API
     const isApiResponse = messageText.includes('\r\n');
+
+    // If it's a welcome message, check if one already exists
+    if (messageText.startsWith('Welcome to CharShift API')) {
+        const existingWelcomeMessage = Array.from(chatMessagesContainer.querySelectorAll('.message .text'))
+            .some(el => el.textContent.startsWith('Welcome to CharShift API'));
+        if (existingWelcomeMessage) {
+            return; // don't output the message
+        }
+    }
     
     if (lastMessage && lastMessage.previousElementSibling.textContent.startsWith('CharBot') && isApiResponse) {
         // Remove the '\r\n' sequence and append to the last CharBot message
-        lastMessage.innerHTML += messageText.replace(/\r\n/g, ' ');
+        lastMessage.innerHTML += messageText.replace('data:', '').replace(/\r\n/g, '');
     } else {
         // Create a new message div
         const div = document.createElement('div');
         div.classList.add('message');
         div.innerHTML = `
             <p class="meta">${username} <span>${new Date().toLocaleTimeString()}</span></p>
-            <p class="text">${messageText.replace(/\r\n/g, ' ')}</p>
+            <p class="text">${messageText.replace('data:', '').replace(/\r\n/g, '')}</p>
         `;
         chatMessagesContainer.appendChild(div);
     }
