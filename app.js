@@ -52,7 +52,10 @@ io.on('connection', (socket) => {
         });
 
         response.data.on('data', (chunk) => {
-          const cleaned_data = chunk.toString('utf-8').replace("data: ", "").replace("\r\n", "");
+          // Currently returns health check ping, identify it to ignore
+          if (chunk.toString('utf-8').indexOf(': ping - ') > -1) return
+          // Clean the data by removing "data:" and "\r\n" elements from stream
+          const cleaned_data = chunk.toString('utf-8').replace('data: ', '').replace('\r\n', '');
           io.to(room).emit('message', formatMessage(botName, cleaned_data));
         });
 
@@ -65,7 +68,7 @@ io.on('connection', (socket) => {
         if (error.response && error.response.data && error.response.data.detail) {
           io.to(room).emit('message', formatMessage(botName, `Error: ${error.response.data.detail}`));
         } else {
-          io.to(room).emit('message', formatMessage(botName, 'There was an error processing your request.'));
+          io.to(room).emit('message', formatMessage(botName, `There was an error processing your request: ${JSON.stringify(error, null, 2)}`));
         }
       }
   });

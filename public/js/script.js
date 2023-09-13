@@ -54,8 +54,10 @@ function outputMessage(username, messageText) {
         }
     }
     
+    // Ensure the '\r\n' sequence and 'data:' are cleaned before display
     if (lastMessage && lastMessage.previousElementSibling.textContent.startsWith('CharBot') && isApiResponse) {
-        // Remove the '\r\n' sequence and append to the last CharBot message
+        // Append continuation of a message to the last CharBot message
+        console.log('messageText:', messageText);
         lastMessage.innerHTML += messageText.replace('data:', '').replace(/\r\n/g, '');
     } else {
         // Create a new message div
