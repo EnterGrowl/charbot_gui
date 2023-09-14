@@ -55,17 +55,19 @@ function outputMessage(username, messageText) {
     }
     
     // Ensure the '\r\n' sequence and 'data:' are cleaned before display
+    const strToAdd = messageText.replace(/data\:./g, '').replace(/\r\n/g, '')
+
     if (lastMessage && lastMessage.previousElementSibling.textContent.startsWith('CharBot') && isApiResponse) {
         // Append continuation of a message to the last CharBot message
-        console.log('messageText:', messageText);
-        lastMessage.innerHTML += messageText.replace('data:', '').replace(/\r\n/g, '');
+        console.log('messageText:', JSON.stringify(strToAdd));
+        lastMessage.innerHTML += strToAdd;
     } else {
         // Create a new message div
         const div = document.createElement('div');
         div.classList.add('message');
         div.innerHTML = `
             <p class="meta">${username} <span>${new Date().toLocaleTimeString()}</span></p>
-            <p class="text">${messageText.replace('data:', '').replace(/\r\n/g, '')}</p>
+            <p class="text">${strToAdd}</p>
         `;
         chatMessagesContainer.appendChild(div);
     }

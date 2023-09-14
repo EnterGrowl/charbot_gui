@@ -54,8 +54,9 @@ io.on('connection', (socket) => {
         response.data.on('data', (chunk) => {
           // Currently returns health check ping, identify it to ignore
           if (chunk.toString('utf-8').indexOf(': ping - ') > -1) return
-          // Clean the data by removing "data:" and "\r\n" elements from stream
-          const cleaned_data = chunk.toString('utf-8').replace('data: ', '').replace('\r\n', '');
+          // Frontend uses the presence of identifiers such as \r\n sequence to know
+          // it is a continuation of a message that is being streamed
+          const cleaned_data = chunk.toString('utf-8');
           io.to(room).emit('message', formatMessage(botName, cleaned_data));
         });
 
