@@ -40,40 +40,58 @@ io.on('connection', (socket) => {
     io.to(room).emit('message', formatMessage('User', msg));
 
     try {
-        // Call API and stream response back to the client
-        const response = await axios({
-          method: 'post',
-          url: apiUrl,
-          data: {
-              auth: authKey,
-              query: msg
-          },
-          responseType: 'stream'
+      // Call API and stream response back to the client
+      const response = await axios({
+        method: 'post',
+        url: apiUrl,
+        data: {
+            auth: authKey,
+            query: msg
+        },
+        responseType: 'stream'
+      });
+
+      response.data.on('data', (chunk) => {
+        // Currently returns health check ping, identify it to ignore
+        if (chunk.toString('utf-8').indexOf(': ping - ') > -1) return
+        // Frontend uses the presence of identifiers such as \r\n sequence to know
+        // it is a continuation of a message that is being streamed
+        const cleaned_data = chunk.toString('utf-8');
+        io.to(room).emit('message', formatMessage(botName, cleaned_data));
+      });
+
+      response.data.on('end', () => {
+        // Optional: Emit a message to indicate the end of the response, or handle any post-response actions
+      });
+
+    } catch (error) {
+
+      if (error.response && error.response.data) {
+        let errorData = '';
+
+        error.response.data.on('data', (chunk) => {
+          errorData += chunk;
         });
 
-        response.data.on('data', (chunk) => {
-          // Currently returns health check ping, identify it to ignore
-          if (chunk.toString('utf-8').indexOf(': ping - ') > -1) return
-          // Frontend uses the presence of identifiers such as \r\n sequence to know
-          // it is a continuation of a message that is being streamed
-          const cleaned_data = chunk.toString('utf-8');
-          io.to(room).emit('message', formatMessage(botName, cleaned_data));
+        // Handle error as stream
+        error.response.data.on('end', () => {
+          try {
+            const parsedError = JSON.parse(errorData);
+            const errorMessage = parsedError.detail ? `Error: ${parsedError.detail}` : 'There was an error processing your request.';
+            io.to(room).emit('message', formatMessage(botName, errorMessage));
+          } catch (e) {
+            console.error("Failed to parse error message:", e);
+            io.to(room).emit('message', formatMessage(botName, 'There was an error processing your request. Unexpected server response format.'));
+          }
         });
 
-        response.data.on('end', () => {
-          // Optional: Emit a message to indicate the end of the response, or handle any post-response actions
-        });
+      } else {
 
-      } catch (error) {
-        // If there's an error with the axios request (e.g., a non-2xx status code), emit the error message to the client.
-        if (error.response && error.response.data && error.response.data.detail) {
-          io.to(room).emit('message', formatMessage(botName, `Error: ${error.response.data.detail}`));
-        } else {
-          io.to(room).emit('message', formatMessage(botName, `There was an error processing your request: ${JSON.stringify(error, null, 2)}`));
-        }
+        io.to(room).emit('message', formatMessage(botName, 'There was an error processing your request.'));
+
       }
+    }
   });
-
 });
 
 const PORT = process.env.PORT || 13447;
